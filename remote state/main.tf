@@ -1,26 +1,55 @@
 resource "azurerm_resource_group" "rg" {
   name     = var.resource_group_name
   location = var.resource_group_location
+
+  tags = var.tags
 }
 
+# -------------------------
+# Random suffix for storage
+# -------------------------
+resource "random_string" "sa_suffix" {
+  length  = 6
+  upper   = false
+  special = false
+}
+
+locals {
+  storage_account_name = (
+    var.storage_account_name != "" ?
+    var.storage_account_name :
+    "tfstate${random_string.sa_suffix.result}"
+  )
+}
+
+# -------------------------
+# Storage Account
+# -------------------------
 resource "azurerm_storage_account" "sa" {
-  name                     = var.storage_account_name
+  name                     = local.storage_account_name
   resource_group_name      = azurerm_resource_group.rg.name
   location                 = azurerm_resource_group.rg.location
+
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  https_traffic_only_enabled = true   # enforce HTTPS
-
-  public_network_access_enabled = false
+  https_traffic_only_enabled      = true
+  public_network_access_enabled   = true     # <-- REQUIRED for GitHub Actions
   allow_nested_items_to_be_public = false
-  min_tls_version = "TLS1_2"
+  min_tls_version                 = "TLS1_2"
+
+  tags = var.tags
 }
 
-
+# -------------------------
+# Storage Container
+# -------------------------
 resource "azurerm_storage_container" "tfstate" {
   name                  = var.container_name
-  storage_account_name  = azurerm_storage_account.sa.name
+  storage_account_id    = azurerm_storage_account.sa.id
   container_access_type = "private"
-}
 
+  depends_on = [
+    azurerm_storage_account.sa
+  ]
+}

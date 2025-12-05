@@ -1,21 +1,29 @@
 variable "resource_group_name" {
-  description = "Name of the Resource Group to create"
   type        = string
+  description = "Resource Group for the TF state resources"
+  default     = "rg-infrastruktur"
 }
 
 variable "resource_group_location" {
-  description = "Azure region for the Resource Group"
   type        = string
-  default     = "East US"
+  description = "Azure region where resources should be deployed"
+  default     = "Norway East"
 }
 
 variable "storage_account_name" {
-  description = "Name of the Storage Account for Terraform state"
   type        = string
+  default     = ""
+  description = "Optional custom storage account name. Leave empty to auto-generate tfstateXXXXXX."
 }
 
 variable "container_name" {
-  description = "Name of the blob container for Terraform state"
   type        = string
   default     = "tfstate"
+  description = "Name of the storage container for Terraform state"
+}
+
+variable "tags" {
+  type        = map(string)
+  default     = {}
+  description = "Optional resource tags"
 }
