@@ -53,3 +53,23 @@ resource "azurerm_storage_container" "tfstate" {
     azurerm_storage_account.sa
   ]
 }
+## Azure AD Application
+resource "azuread_application" "github_oidc_app" {
+  display_name = "github-actions-oidc-app"
+}
+
+# Service Principal
+resource "azuread_service_principal" "github_oidc_sp" {
+  client_id = azuread_application.github_oidc_app.client_id
+}
+
+# Federated Identity Credential for GitHub Actions OIDC
+resource "azuread_application_federated_identity_credential" "github_oidc_federation" {
+  application_id = azuread_application.github_oidc_app.id
+  display_name   = "github-actions-federation"
+
+  issuer   = "https://token.actions.githubusercontent.com"
+  subject  = "repo:YOUR_ORG/YOUR_REPO:ref:refs/heads/main"
+  audiences = ["api://AzureADTokenExchange"]
+}
+

@@ -17,3 +17,7 @@ provider "azurerm" {
   }
   subscription_id = "8aed33d3-48a3-48f1-b05c-87b8a109cabf"
 }
+
+provider "azuread" {
+  
+}
