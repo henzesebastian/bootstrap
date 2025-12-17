@@ -53,6 +53,11 @@ resource "azurerm_storage_container" "tfstate" {
     azurerm_storage_account.sa
   ]
 }
+
+# -------------------------
+/* My Subscription has restrictions that require this setup for GitHub Actions OIDC */
+
+/*
 ## Azure AD Application
 resource "azuread_application" "github_oidc_app" {
   display_name = "github-actions-oidc-app"
@@ -72,4 +77,5 @@ resource "azuread_application_federated_identity_credential" "github_oidc_federa
   subject  = "repo:YOUR_ORG/YOUR_REPO:ref:refs/heads/main"
   audiences = ["api://AzureADTokenExchange"]
 }
+*/
 
