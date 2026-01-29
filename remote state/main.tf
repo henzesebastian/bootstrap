@@ -41,9 +41,9 @@ resource "azurerm_storage_account" "sa" {
   tags = var.tags
 }
 
-# -------------------------
-# Storage Container
-# -------------------------
+# -----------------------------------------#
+# Storage Container for TF State          #
+# -----------------------------------------#
 resource "azurerm_storage_container" "tfstate" {
   name                  = var.container_name
   storage_account_id    = azurerm_storage_account.sa.id
@@ -53,6 +53,53 @@ resource "azurerm_storage_container" "tfstate" {
     azurerm_storage_account.sa
   ]
 }
+
+/*
+###############################################
+# Orderportal for Azure Resource Deployment   #
+###############################################
+
+resource "azurerm_resource_group" "web" {
+  name     = "rg-order-portal"
+  location = "Norway East"
+}
+
+resource "azurerm_service_plan" "plan" {
+  name                = "asp-order-portal"
+  location            = azurerm_resource_group.web.location
+  resource_group_name = azurerm_resource_group.web.name
+  os_type             = "Linux"
+  sku_name            = "B1"
+}
+
+resource "azurerm_linux_web_app" "app" {
+  name                = "order-portal-demo-12345"
+  location            = azurerm_resource_group.web.location
+  resource_group_name = azurerm_resource_group.web.name
+  service_plan_id     = azurerm_service_plan.plan.id
+
+  site_config {
+    application_stack {
+      node_version = "18-lts"
+    }
+  }
+
+  app_settings = {
+    GITHUB_TOKEN = var.github_token
+    GITHUB_OWNER = "your-org"
+    GITHUB_REPO  = "terraform-services"
+    WORKFLOW_ID  = "order.yml"
+  }
+}
+*/
+
+
+
+
+
+
+
+
 
 # -------------------------
 /* My Subscription has restrictions that require this setup for GitHub Actions OIDC */

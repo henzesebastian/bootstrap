@@ -27,3 +27,8 @@ variable "tags" {
   default     = {}
   description = "Optional resource tags"
 }
+variable "github_token" {
+  description = "GitHub PAT with workflow permissions"
+  type        = string
+  sensitive   = true
+}
