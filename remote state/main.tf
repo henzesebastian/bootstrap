@@ -38,6 +38,18 @@ resource "azurerm_storage_account" "sa" {
   allow_nested_items_to_be_public = false
   min_tls_version                 = "TLS1_2"
 
+  blob_properties {
+    versioning_enabled = true
+
+    delete_retention_policy {
+      days = 7
+    }
+
+    container_delete_retention_policy {
+      days = 7
+    }
+  }
+
   tags = var.tags
 }
 
@@ -48,10 +60,6 @@ resource "azurerm_storage_container" "tfstate" {
   name                  = var.container_name
   storage_account_id    = azurerm_storage_account.sa.id
   container_access_type = "private"
-
-  depends_on = [
-    azurerm_storage_account.sa
-  ]
 }
 
 /*
@@ -102,8 +110,20 @@ resource "azurerm_linux_web_app" "app" {
 
 
 # -------------------------
-/* My Subscription has restrictions that require this setup for GitHub Actions OIDC */
+# GitHub Actions Authentication
+# -------------------------
+# Using traditional Service Principal with Client Secret
+# Requires Azure AD admin permissions - commented out for manual creation
+#
+# To create manually, run:
+# az ad sp create-for-rbac --name "github-actions-terraform-course" \
+#   --role "Contributor" \
+#   --scopes /subscriptions/8aed33d3-48a3-48f1-b05c-87b8a109cabf \
+#   --sdk-auth
+#
+# Save the output JSON and add to GitHub Secrets as AZURE_CREDENTIALS
 
+# Uncomment below if you have Azure AD Application Administrator permissions:
 /*
 ## Azure AD Application
 resource "azuread_application" "github_oidc_app" {
@@ -121,8 +141,22 @@ resource "azuread_application_federated_identity_credential" "github_oidc_federa
   display_name   = "github-actions-federation"
 
   issuer   = "https://token.actions.githubusercontent.com"
-  subject  = "repo:YOUR_ORG/YOUR_REPO:ref:refs/heads/main"
+  subject  = "repo:henzesebastian/terraform-course:ref:refs/heads/main"
   audiences = ["api://AzureADTokenExchange"]
+}
+
+# Role Assignment - Grant permissions to manage Terraform state
+resource "azurerm_role_assignment" "github_sp_storage" {
+  scope                = azurerm_storage_account.sa.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azuread_service_principal.github_oidc_sp.object_id
+}
+
+# Optional: Grant Contributor role at resource group level for broader permissions
+resource "azurerm_role_assignment" "github_sp_contributor" {
+  scope                = azurerm_resource_group.rg.id
+  role_definition_name = "Contributor"
+  principal_id         = azuread_service_principal.github_oidc_sp.object_id
 }
 */
 

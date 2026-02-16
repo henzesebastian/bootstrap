@@ -14,6 +14,11 @@ variable "storage_account_name" {
   type        = string
   default     = ""
   description = "Optional custom storage account name. Leave empty to auto-generate tfstateXXXXXX."
+
+  validation {
+    condition = var.storage_account_name == "" || can(regex("^[a-z0-9]{3,24}$", var.storage_account_name))
+    error_message = "storage_account_name must be 3-24 lowercase letters or numbers, or left empty to auto-generate."
+  }
 }
 
 variable "container_name" {
@@ -27,8 +32,10 @@ variable "tags" {
   default     = {}
   description = "Optional resource tags"
 }
-variable "github_token" {
-  description = "GitHub PAT with workflow permissions"
-  type        = string
-  sensitive   = true
-}
+
+# Commented out - only needed if deploying the order portal web app
+# variable "github_token" {
+#   description = "GitHub PAT with workflow permissions"
+#   type        = string
+#   sensitive   = true
+# }
